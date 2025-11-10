@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Blood Donation Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+/* --- base --- */
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif;}
+body{
+  background:linear-gradient(120deg,#ff4d4d,#ff7b9c,#fff);
+  background-size:300% 300%;
+  animation:gradientMove 10s ease infinite;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  color:#333;
+  position:relative;
+}
+@keyframes gradientMove{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+/* --- floating hearts --- */
+.heart {
+  position:absolute; width:20px; height:20px; background:#ff1f1f; transform:rotate(-45deg);
+  animation: floatHeart linear infinite; z-index:0; opacity:0.7;
+}
+.heart::before, .heart::after {
+  content:""; position:absolute; width:20px; height:20px; background:#ff1f1f; border-radius:50%;
+}
+.heart::before { top:-10px; left:0; }
+.heart::after { top:0; left:10px; }
+@keyframes floatHeart {
+  0% { transform: translateY(110vh) rotate(-45deg) scale(0.5); opacity:0; }
+  50% { opacity:0.8; }
+  100% { transform: translateY(-20vh) rotate(45deg) scale(1); opacity:0; }
+}
+
+/* --- floating drops --- */
+.blood-drop{
+  position:absolute;
+  width:20px;height:30px;
+  background:radial-gradient(circle at 30% 30%,#ff6b6b 0%,#b30000 80%);
+  border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+  opacity:0.85;
+  animation:floatUp 8s linear infinite;
+  pointer-events:none;
+}
+@keyframes floatUp{
+  0%{transform:translateY(110vh) rotate(0deg) scale(0.8);opacity:0.9;}
+  50%{opacity:1;}
+  100%{transform:translateY(-20vh) rotate(120deg) scale(1);opacity:0;}
+}
+
+/* --- container --- */
+.container{
+  width:92%;
+  max-width:700px;
+  background:rgba(255,255,255,0.96);
+  border-radius:18px;
+  padding:28px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.15);
+  backdrop-filter: blur(8px);
+  animation:fadeIn 0.9s ease;
+  position:relative;
+  z-index:2;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+
+/* --- typography & inputs --- */
+h2{ text-align:center;color:#b30000;font-weight:700;margin-bottom:14px;font-size:26px;text-shadow:0 0 12px rgba(255,0,0,0.12); }
+input,select,button{width:100%;padding:11px;margin:8px 0;border-radius:10px;border:none;font-size:15px;outline:none;}
+input,select{background:rgba(255,255,255,0.95);border:2px solid #ffd6d6;transition:all .18s;}
+input:focus,select:focus{border-color:#ff4d4d;box-shadow:0 0 8px rgba(255,77,77,0.18);}
+button{background:linear-gradient(90deg,#ff2e2e,#ff7b7b);color:#fff;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 0 10px rgba(255,0,0,0.18);}
+button:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(255,0,0,0.25);}
+
+/* small utilities */
+.back-btn{background:#e6e6e6;color:#333;}
+.hidden{display:none;}
+.switch{text-align:center;margin-top:8px;}
+.switch span{color:#007bff;cursor:pointer;font-weight:600;}
+
+/* donor card */
+.donor-card{background:linear-gradient(180deg,rgba(255,238,238,0.95),rgba(255,245,245,0.95));border-radius:12px;padding:14px;margin-top:10px;border:1px solid #ffd6d6;animation:cardIn .35s ease;}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+.eligibility{font-weight:700;}
+.eligible{color:#008f39;}
+.not-eligible{color:#c82323;}
+
+/* footer */
+footer{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);font-size:13px;color:#444;display:flex;align-items:center;gap:6px;z-index:3;}
+footer span{color:#ff1f1f;transform-origin:center;animation:heartPulse 1.6s infinite ease-in-out;}
+@keyframes heartPulse{0%{transform:scale(1);}50%{transform:scale(1.12);}100%{transform:scale(1);}}
+
+/* --- blood donation meter --- */
+.donation-meter {
+  margin: 12px 0;
+  background: #ffe6e6;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 25px;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+}
+.donation-meter-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg,#ff3b3b,#ff7b7b);
+  text-align: right;
+  padding-right: 8px;
+  line-height: 25px;
+  color: #fff;
+  font-weight:600;
+  border-radius: 12px 0 0 12px;
+  transition: width 1s ease-in-out;
+}
+</style>
+</head>
+<body>
+
+<!-- floating hearts -->
+<div class="heart" style="left:10%; animation-duration:8s;"></div>
+<div class="heart" style="left:25%; animation-duration:12s;"></div>
+<div class="heart" style="left:40%; animation-duration:10s;"></div>
+<div class="heart" style="left:60%; animation-duration:14s;"></div>
+<div class="heart" style="left:75%; animation-duration:9s;"></div>
+
+<!-- floating blood drops -->
+<div class="blood-drop" style="left:6%; animation-delay:0s;"></div>
+<div class="blood-drop" style="left:18%; animation-delay:1.8s;"></div>
+<div class="blood-drop" style="left:32%; animation-delay:0.6s;"></div>
+<div class="blood-drop" style="left:46%; animation-delay:2.4s;"></div>
+<div class="blood-drop" style="left:62%; animation-delay:1.2s;"></div>
+<div class="blood-drop" style="left:78%; animation-delay:0.9s;"></div>
+<div class="blood-drop" style="left:88%; animation-delay:3s;"></div>
+
+<!-- HOME -->
+<div class="container" id="homePage">
+  <h2>Welcome 👋</h2>
+  <button onclick="navigateTo('adminLogin')">🔐 Admin Login</button>
+  <button onclick="navigateTo('userLogin')">👤 User Login / Register</button>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div class="container hidden" id="adminLogin">
+  <h2>Admin Login</h2>
+  <input type="password" id="adminPass" placeholder="Enter Admin Password">
+  <button onclick="verifyAdmin()">Login</button>
+  <p class="switch">⬅️ <span onclick="navigateTo('homePage')">Back to Home</span></p>
+</div>
+
+<!-- USER LOGIN -->
+<div class="container hidden" id="userLogin">
+  <h2>User Login</h2>
+  <input type="email" id="userEmail" placeholder="Email">
+  <input type="password" id="userPassword" placeholder="Password">
+  <button onclick="userLogin()">Login</button>
+  <p class="switch">Don’t have an account? <span onclick="navigateTo('userRegister')">Register</span></p>
+  <p class="switch">⬅️ <span onclick="navigateTo('homePage')">Back to Home</span></p>
+</div>
+
+<!-- USER REGISTER -->
+<div class="container hidden" id="userRegister">
+  <h2>Register as Donor</h2>
+  <input type="text" id="regName" placeholder="Full Name">
+  <input type="email" id="regEmail" placeholder="Email">
+  <input type="password" id="regPass" placeholder="Password">
+  <select id="regBlood">
+    <option value="">Select Blood Group</option>
+    <option>O+</option><option>O-</option>
+    <option>A+</option><option>A-</option>
+    <option>B+</option><option>B-</option>
+    <option>AB+</option><option>AB-</option>
+  </select>
+  <button onclick="registerUser()">Register</button>
+  <p class="switch">Already registered? <span onclick="navigateTo('userLogin')">Login</span></p>
+</div>
+
+<!-- USER DASHBOARD -->
+<div class="container hidden" id="userDashboard">
+  <h2 id="userWelcome">User Dashboard 🩸</h2>
+
+  <h3 style="margin-top:6px;">Add Your Donation</h3>
+  <input type="number" id="uAge" placeholder="Age">
+  <input type="number" id="uWeight" placeholder="Weight (kg)">
+  <input type="number" id="uMonths" placeholder="Months since last donation">
+  <button onclick="addUserDonation()">Add Donation</button>
+  <p id="eligibilityResult" style="margin-top:10px;font-weight:600;"></p>
+
+  <h3 style="margin-top:16px;">Your Donations 💖</h3>
+  <div id="userDonorList"></div>
+  <button class="back-btn" onclick="logoutUser()" style="margin-top:12px;">Logout</button>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div class="container hidden" id="adminDashboard">
+  <h2>Admin Dashboard</h2>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <button style="flex:1" onclick="navigateTo('viewDonors')">📋 View All Donors</button>
+    <button style="flex:1" onclick="viewUsers()">👤 View Users</button>
+  </div>
+  <button onclick="logoutAdmin()" style="background:#333;color:#fff;margin-top:12px;">🚪 Logout</button>
+</div>
+
+<!-- VIEW DONORS -->
+<div class="container hidden" id="viewDonors">
+  <h2>All Donors</h2>
+  <div id="donorList"></div>
+  <button class="back-btn" onclick="navigateTo('adminDashboard')" style="margin-top:10px;">⬅️ Back</button>
+</div>
+
+<!-- VIEW USERS -->
+<div class="container hidden" id="viewUsers">
+  <h2>Registered Users</h2>
+  <div id="usersList"></div>
+  <button class="back-btn" onclick="navigateTo('adminDashboard')" style="margin-top:10px;">⬅️ Back</button>
+</div>
+
+<footer><span>❤️</span> Blood Donation Management System © 2025</footer>
+
+<script>
+const ADMIN_PASS = "admin123";
+let donors = JSON.parse(localStorage.getItem("donors")) || [];
+let users  = JSON.parse(localStorage.getItem("users")) || [];
+let currentUser = null;
+
+/* --- navigation --- */
+function navigateTo(page){
+  document.querySelectorAll(".container").forEach(c => c.classList.add("hidden"));
+  const el = document.getElementById(page);
+  if(!el) return console.warn("No page:", page);
+  if(page==="userDashboard" && !currentUser){ alert("Please login first"); document.getElementById("userLogin").classList.remove("hidden"); return; }
+  el.classList.remove("hidden");
+  if(page==="viewDonors") displayDonors();
+  if(page==="viewUsers") displayUsers();
+  if(page==="userDashboard"){ displayUserDonors(); document.getElementById("userWelcome").textContent=`Welcome, ${currentUser.name} 🩸`; }
+}
+
+/* --- auth --- */
+function verifyAdmin(){
+  const pass = document.getElementById("adminPass").value;
+  if(pass===ADMIN_PASS){ navigateTo("adminDashboard"); document.getElementById("adminPass").value=""; }
+  else alert("❌ Incorrect Password");
+}
+function logoutAdmin(){ navigateTo("homePage"); }
+function logoutUser(){ currentUser=null; navigateTo("homePage"); }
+
+/* register/login */
+function registerUser(){
+  const name=document.getElementById("regName").value.trim();
+  const email=document.getElementById("regEmail").value.trim();
+  const pass=document.getElementById("regPass").value.trim();
+  const blood=document.getElementById("regBlood").value;
+  if(!name||!email||!pass||!blood) return alert("⚠️ Fill all fields!");
+  if(users.some(u=>u.email===email)) return alert("User already exists!");
+  users.push({name,email,pass,blood});
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("✅ Registered successfully!");
+  document.getElementById("regName").value="";
+  document.getElementById("regEmail").value="";
+  document.getElementById("regPass").value="";
+  document.getElementById("regBlood").value="";
+  navigateTo("userLogin");
+}
+function userLogin(){
+  const email=document.getElementById("userEmail").value.trim();
+  const pass=document.getElementById("userPassword").value.trim();
+  const user = users.find(u=>u.email===email && u.pass===pass);
+  if(user){ currentUser=user; document.getElementById("userEmail").value=""; document.getElementById("userPassword").value=""; navigateTo("userDashboard"); }
+  else alert("❌ Invalid credentials");
+}
+
+/* add donation */
+function addUserDonation(){
+  if(!currentUser){ alert("Login first"); return; }
+  const age=parseInt(document.getElementById("uAge").value);
+  const weight=parseFloat(document.getElementById("uWeight").value);
+  const months=parseInt(document.getElementById("uMonths").value);
+  const res=document.getElementById("eligibilityResult");
+  if(!age||!weight||isNaN(months)){ res.textContent="⚠️ Fill all fields correctly!"; res.style.color="#ff3333"; return; }
+  let eligibility="";
+  if(age<18||age>60) eligibility="❌ Not eligible: Age 18–60 only.";
+  else if(weight<50) eligibility="❌ Not eligible: Weight ≥ 50 kg required.";
+  else if(months<3) eligibility="❌ Wait at least 3 months before next donation.";
+  else eligibility="✅ Eligible for blood donation!";
+  res.textContent=eligibility; res.style.color=eligibility.includes("✅")?"#008f39":"#ff3333";
+
+  const record={ id:Date.now(), name:currentUser.name, age, weight, blood:currentUser.blood, months, eligibility, date:new Date().toLocaleString() };
+  donors.push(record); localStorage.setItem("donors",JSON.stringify(donors));
+  alert("✅ Donation added!"); document.getElementById("uAge").value=""; document.getElementById("uWeight").value=""; document.getElementById("uMonths").value="";
+  displayUserDonors();
+}
+
+/* --- display --- */
+function displayDonors(){
+  const list=document.getElementById("donorList");
+  if(donors.length===0){ list.innerHTML="<p style='text-align:center;'>No donors found.</p>"; return; }
+  list.innerHTML=donors.map((d,i)=>{ const cls=d.eligibility.includes("✅")?"eligible":"not-eligible";
+  return `<div class='donor-card'><strong>Donor ${i+1}</strong><br>👤 ${d.name}<br>🎂 Age: ${d.age}<br>⚖️ Weight: ${d.weight} kg<br>🩸 ${d.blood}<br>📅 ${d.date}<br>⏳ ${d.months} months ago<div class="eligibility ${cls}">${d.eligibility}</div></div>`}).join("");
+}
+function displayUsers(){
+  const list=document.getElementById("usersList");
+  if(users.length===0){ list.innerHTML="<p style='text-align:center;'>No users found.</p>"; return; }
+  list.innerHTML=users.map((u,i)=>`<div class='donor-card'><strong>User ${i+1}</strong><br>👤 ${u.name}<br>✉️ ${u.email}<br>🩸 Blood Group: ${u.blood}</div>`).join("");
+}
+function viewUsers(){ navigateTo('viewUsers'); }
+
+function displayUserDonors(){
+  const list=document.getElementById("userDonorList");
+  if(!currentUser){ list.innerHTML="<p style='text-align:center;'>Please login.</p>"; return; }
+  const userDonors=donors.filter(d=>d.name===currentUser.name);
+  if(userDonors.length===0){ list.innerHTML="<p style='text-align:center;'>No donations yet.</p>"; return; }
+  list.innerHTML=userDonors.map((d,i)=>{
+    const cls=d.eligibility.includes("✅")?"eligible":"not-eligible";
+    const meter=Math.min((d.months/12)*100,100);
+    return `<div class='donor-card'>
+      <strong>Donation ${i+1}</strong><br>
+      🎂 Age: ${d.age}<br>
+      ⚖️ Weight: ${d.weight} kg<br>
+      🩸 ${d.blood}<br>
+      📅 ${d.date}<br>
+      ⏳ ${d.months} months ago<br>
+      <div class="eligibility ${cls}">${d.eligibility}</div>
+      <div class="donation-meter"><div class="donation-meter-fill" style="width:${meter}%;">${meter}%</div></div>
+    </div>`}).join("");
+}
+</script>
+</body>
+</html>
+
